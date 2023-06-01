@@ -19,6 +19,7 @@ export default class BgManager extends cc.Component {
 
         })
         this.init();
+        cc.assetManager.cacheAsset = false;
     }
 
     update(dt) {
@@ -51,11 +52,14 @@ export default class BgManager extends cc.Component {
                 pos.x += bg.width / 2;
             }
             console.log("初始化完成");
-            this.node.removeChild(this.node.children[0]);
+            if (this.node.children[0].isValid) {
+                this.node.children[0].destroy();
+            }
             this.eventNode.emit("bgInitCompleted");
         })
     }
 
+    releaseIndex = 0;
     bgMove(value) {
         let lastBg = this.node.children[this.node.children.length - 1];
         if (lastBg.x <= this.winSize.width - lastBg.width) {
@@ -67,6 +71,14 @@ export default class BgManager extends cc.Component {
         }
         for (let child of this.node.children) {
             child.x -= this.moveSpeed * value;
+            if (child.x <= -3000) {
+                child.destroy();
+                let releaseRes = this.bgPrefabs[this.releaseIndex];
+                let deps = cc.loader.getDependsRecursively(releaseRes);
+                cc.loader.release(deps);
+                console.log("释放资源-----------------");
+                this.releaseIndex++;
+            }
         }
     }
 }

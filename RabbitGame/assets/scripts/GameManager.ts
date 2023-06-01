@@ -36,7 +36,7 @@ export default class GameManager extends cc.Component {
         this.eventNode.on("gameOver", () => {
             this.eventNode.emit("over", this.carrotNum);
         }, this)
-
+        cc.debug.setDisplayStats(true);
 
     }
 
