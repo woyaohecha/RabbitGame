@@ -17,10 +17,15 @@ export default class Lottery extends cc.Component {
 
     user: User;
 
+    lottery: cc.Node = null;
+    result: cc.Node = null;
+
 
     onLoad() {
         this.user = User.getInstance();
         this.eventNode = cc.find("EventNode");
+        this.lottery = this.node.getChildByName("Lottery");
+        this.result = this.node.getChildByName("Result");
         this.init();
     }
 
@@ -29,19 +34,17 @@ export default class Lottery extends cc.Component {
     }
 
     init() {
-        let lottery = this.node.getChildByName("Lottery");
-        let result = this.node.getChildByName("Result");
-        lottery.active = true;
-        result.active = false;
+        this.lottery.active = true;;
+        this.result.active = false;;
         this.lotterying = false;
     }
 
     //value:0-未中奖  1-话费  2-京东 3-美团
+    //
     startLottery(value: number) {
         if (value > 3) return;
 
-        let lottery = this.node.getChildByName("Lottery");
-        let pan = lottery.getChildByName("Pan");
+        let pan = this.lottery.getChildByName("Pan");
 
 
 
@@ -72,7 +75,7 @@ export default class Lottery extends cc.Component {
         cc.tween(pan)
             .to(time, { angle: rotateAngle }, { easing: "quintOut" })
             .call(() => {
-                lottery.active = false;
+                this.lottery.active = false;
                 this.showResult(value);
             })
             .start();
@@ -80,51 +83,56 @@ export default class Lottery extends cc.Component {
     }
 
     showResult(value) {
-        let result = this.node.getChildByName("Result");
-        for (let child of result.children) {
-            if (child.name == "BtnContinue")
-                continue;
+        for (let child of this.result.children) {
             child.active = false;
         }
 
+        let btnBack = this.result.getChildByName("BtnBack");
+        let btnTo = this.result.getChildByName("BtnTo");
         switch (value) {
             case 0:
-                result.children[0].active = true;
+                this.result.children[0].active = true;
+                btnBack.active = true;
                 break;
             case 1:
-                result.children[1].active = true;
+                this.result.children[1].active = true;
+                btnTo.active = true;
                 break;
             case 2:
-                result.children[2].active = true;
+                this.result.children[2].active = true;
+                btnTo.active = true;
                 break;
             case 3:
-                result.children[3].active = true;
+                this.result.children[3].active = true;
+                btnTo.active = true;
                 break;
         }
-        result.active = true;
+        this.result.active = true;
         this.lotterying = false;
     }
 
     lotterying: boolean = false;
+    webUrl: string = "";
     btnLottery() {
         if (this.lotterying) return;
         this.lotterying = true;
         let cell = this.user.getReward().cell;
-        console.log(cell);
+        let url = this.user.getReward().reward_url;
+        this.webUrl = url;
         let result;
         switch (cell) {
             case 1:
                 result = 1;
                 break;
-            case 3:
+            case 2:
                 result = 2;
                 break;
-            case 5:
+            case 3:
                 result = 3;
                 break;
-            case 2:
             case 4:
             case 5:
+            case 6:
             default:
                 result = 0;
                 break;
@@ -132,10 +140,21 @@ export default class Lottery extends cc.Component {
         this.startLottery(result);
     }
 
-    backIndex() {
+    onBtnBack() {
         let canvas: cc.Canvas = cc.find("Canvas").getComponent(cc.Canvas);;
         Tools.setSceneDir(canvas, 0);
         cc.director.loadScene("Index");
+    }
+
+    onBtnToWeb() {
+        console.log(this.webUrl);
+        if (this.webUrl != "") {
+            window.location.href = this.webUrl;
+        } else {
+            this.onBtnBack();
+        }
+
+
     }
 
 

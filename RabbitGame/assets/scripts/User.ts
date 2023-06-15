@@ -20,18 +20,25 @@ export default class User {
         //若无缓存数据，则创建uid并保存uid并从服务器获取相关数据
         if (cc.sys.localStorage.getItem("uid")) {
             this.uid = Number(cc.sys.localStorage.getItem("uid"));
+            this.getUserRewardInfo();
+            //根据uid从服务器获取抽奖数据
+            this.getLuckDrawInfo();
         } else {
             //随机获得uid
-            this.uid = Tools.getRandomNum(10000000, 99999999);
+            this.uid = Number((new Date().getTime() + "").substring(5));
+            // this.uid = 1234567891011;
+            console.log("获取用户uid");
             //本地存储、服务器存储 uid
             cc.sys.localStorage.setItem("uid", this.uid);
-            this.saveUserInfo();
+            this.saveUserInfo(() => {
+                //根据uid从服务器获取奖品数据
+                this.getUserRewardInfo();
+                //根据uid从服务器获取抽奖数据
+                this.getLuckDrawInfo();
+            });
         }
 
-        //根据uid从服务器获取奖品数据
-        this.getUserRewardInfo();
-        //根据uid从服务器获取抽奖数据
-        this.getLuckDrawInfo();
+
 
         console.log("uid:" + this.uid);
     }
@@ -53,14 +60,15 @@ export default class User {
     }
 
     //保存用户信息：saveUserInfo(uid:number,name:string)-------1
-    public saveUserInfo() {
+    public saveUserInfo(callback: Function) {
         let myUrl = url + "/saveUserInfo/?uid=" + this.uid + "&name=" + this.uid;
         let xhr = new XMLHttpRequest();
         xhr.onreadystatechange = function () {
             if (xhr.readyState == 4 && (xhr.status >= 200 && xhr.status < 400)) {
                 var response = xhr.responseText;
                 let data = JSON.parse(response).data;
-                // console.log("保存用户信息-----------------", data);
+                console.log("保存用户信息-----------------", data);
+                callback();
             }
         };
         xhr.open("GET", myUrl, true);
@@ -74,14 +82,17 @@ export default class User {
         let self = this;
         xhr.onreadystatechange = function () {
             if (xhr.readyState == 4 && (xhr.status >= 200 && xhr.status < 400)) {
+
                 var response = xhr.responseText;
                 let data = JSON.parse(response).data;
+                console.log("获取用户中奖记录-----------------", self.rewardList);
                 if (data.length == 0) {
                     self.rewardList = [];
                 } else {
                     self.rewardList = data;
                 }
-                // console.log("获取用户中奖记录-----------------", self.rewardList);
+                console.log("最终用户中奖记录-----------------", self.rewardList);
+
             }
         };
         xhr.open("GET", myUrl, true);
@@ -97,14 +108,15 @@ export default class User {
             if (xhr.readyState == 4 && (xhr.status >= 200 && xhr.status < 400)) {
                 var response = xhr.responseText;
                 let data = JSON.parse(response).data;
+                console.log("获取用户抽奖数据-----------------", response)
                 if (data) {
                     self.reward = data;
+                } else {
+                    self.reward = { cell: 0, reward_url: "https://www.baidu.com" };
                 }
-                else {
-                    self.reward = { cell: 2, reward_url: "" };
-                }
+                console.log("最终用户抽奖数据-----------------", self.reward)
             }
-            // console.log("获取用户抽奖数据-----------------", self.reward)
+
         };
         xhr.open("GET", myUrl, true);
         xhr.send();

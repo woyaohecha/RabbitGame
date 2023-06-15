@@ -18,6 +18,7 @@ export default class Index extends cc.Component {
     user: User;
 
     onLoad() {
+        // cc.sys.localStorage.clear();
         this.user = User.getInstance();
         cc.director.preloadScene("Game");
 
@@ -67,7 +68,8 @@ export default class Index extends cc.Component {
         if (this.rewardList.length == 0) {
             this.awards.children[0].active = true;
         } else {
-            let id = this.rewardList[0].id;
+            // let id = this.rewardList[0].id;
+            let id = 4;
             let index;
             switch (id) {
                 case 1:
